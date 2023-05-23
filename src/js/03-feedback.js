@@ -1,55 +1,49 @@
 import throttle from 'lodash.throttle';
 
-const refs = {
-  form: document.querySelector('.feedback-form'),
-  input: document.querySelector('input[name="email"]'),
-  message: document.querySelector('textarea'),
-};
+const form = document.querySelector('.feedback-form');
+const emailInput = form.querySelector('input[name="email"]');
+const messageInput = form.querySelector('textarea[name="message"]');
 
 const STORAGE_KEY = 'feedback-form-state';
-const formData = {
-  email: '',
-  message: '',
-};
-
-refs.input.addEventListener('input', throttle(onInputChange, 500));
-refs.message.addEventListener('input', throttle(onMessageChange, 500));
-refs.form.addEventListener('submit', onSubmitHandle);
-window.addEventListener('DOMContentLoaded', fillData);
 
 function saveFormData() {
+  const formData = {
+    email: emailInput.value,
+    message: messageInput.value
+  };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
 }
 
-function onSubmitHandle(event) {
-  event.preventDefault();
-  console.log(formData);
-  localStorage.removeItem(STORAGE_KEY);
-  refs.form.reset();
-}
-
-function onInputChange(event) {
-  inputValue = event.target.value;
-  formData.email = inputValue;
-  saveFormData();
-} 
-
-function onMessageChange(event) {
-  messageValue = event.target.value;
-  formData.message = messageValue;
-  saveFormData();
-} 
-
-function fillData() {
+function populateFormFields() {
   const savedFormData = localStorage.getItem(STORAGE_KEY);
-  
-if (savedFormData) {
+  if (savedFormData) {
     const { email, message } = JSON.parse(savedFormData);
-    refs.input.value = email;
-    refs.message.value = message;
-}
-else {
-    refs.input.value = '';
-    refs.message.value = '';
+    emailInput.value = email;
+    messageInput.value = message;
+  } else {
+    emailInput.value = '';
+    messageInput.value = '';
   }
 }
+
+function onSubmit(event) {
+  event.preventDefault();
+  const formData = {
+    email: emailInput.value,
+    message: messageInput.value
+  };
+  if (emailInput.value.trim() === "" || messageInput.value.trim() === "") {
+      return alert("All data must be filled");
+    } 
+  console.log(formData);
+  localStorage.removeItem(STORAGE_KEY);
+  form.reset();
+}
+
+const throttledSaveFormData = throttle(saveFormData, 500);
+
+form.addEventListener('submit', onSubmit);
+emailInput.addEventListener('input', throttledSaveFormData);
+messageInput.addEventListener('input', throttledSaveFormData);
+
+populateFormFields();
